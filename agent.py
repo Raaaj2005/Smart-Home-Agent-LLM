@@ -5,7 +5,7 @@ import os
 import time
 import google.generativeai as genai
 
-genai.configure(api_key="API_KEY_HERE")
+genai.configure(api_key="GEMINI_API_KEY")
 model = genai.GenerativeModel('gemini-2.5-flash', generation_config={"response_mime_type": "application/json"})
 
 
