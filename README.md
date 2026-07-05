@@ -1,40 +1,40 @@
 # Smart Home Agent LLM
 
 ## 🚀 Project Overview
-This repository contains the decision-making logic for a simulated home robot. The project involves replacing a basic, hardcoded mock agent with a dynamic Large Language Model (Google's Gemini 2.5 Flash) to process natural language commands. The agent interprets plain English instructions, factors in the current state of its environment, and generates strict, actionable JSON execution plans for the robot to follow.
+This repository contains the decision-making logic for a simulated home robot. Moving away from black-box LLM APIs (like OpenAI or Gemini), this project implements a custom **Classical AI Rule-Based Engine** built entirely in Python. It utilizes a Finite State Machine (FSM) and keyword-based entity extraction to process plain English commands, resolve ambiguities, and dynamically trigger physical hardware functions within a simulated environment.
 
-## 🛠️ Core Capabilities
-The agent's logic is heavily engineered to handle edge cases and operate safely within a simulated home environment.
+## 🧠 Architectural Highlights
+This agent is built for 100% local execution, zero latency, and absolute deterministic control over the robot's actions.
 
-### 1. Contextual Grounding
-* **Design Philosophy:** The robot must not hallucinate actions.
-* **Optimization:** Before executing any move or pickup command, the LLM actively cross-references the user's request with its known environmental state, refusing to interact with objects or locations that do not exist.
+### 1. Stateful Memory (FSM)
+* **The Challenge:** Vague commands (e.g., "Get me a drink") usually cause stateless logic to fail. 
+* **The Solution:** Implemented a short-term memory system using a finite state machine (`current_state`). If a command is ambiguous, the agent flags itself as waiting for clarification, asks the user a follow-up question, and seamlessly combines the previous context with the user's new input.
 
-### 2. Safety Guardrails
-* **Design Philosophy:** A home robot must prioritize user and environmental safety.
-* **Optimization:** Strict system prompts govern the model, ensuring it identifies and explicitly refuses dangerous requests (e.g., handling kitchen knives or hazardous materials) using a built-in verbal response system.
+### 2. Entity Mapping & Grounding
+* **The Challenge:** Translating messy human language into strict robotic parameters.
+* **The Solution:** Utilizes highly efficient Python dictionaries to map natural language synonyms (e.g., "water", "juice") directly to physical simulation targets (e.g., `water_bottle`). It also hardcodes environmental grounding, matching specific items to their native coordinates (e.g., newspapers live on the `dining_table`).
 
-### 3. Ambiguity Resolution & Recovery
-* **Design Philosophy:** No blind guessing. Hardware fails.
-* **Optimization:** Vague commands (e.g., "get me something to drink") trigger the agent to ask clarifying questions. Furthermore, the physical execution loop includes hardware failure detection, safely halting operations if the simulated robot drops an item or malfunctions.
+### 3. Dynamic Dispatch & Recovery
+* **The Challenge:** Hardcoding `if/else` statements for every physical movement is inefficient and brittle.
+* **The Solution:** Uses Python's `getattr` to dynamically parse intended actions into callable simulator functions. Furthermore, a strict hardware-recovery loop intercepts failure states (e.g., dropping an item or failing to sense a target), safely halting execution and providing verbal feedback instead of blindly completing a broken task.
 
-## 📊 Technical Implementation
-* **Language & API:** Python, `google-generativeai` SDK.
-* **Prompt Engineering:** Utilizes a highly structured system prompt enforcing JSON-only output and strict adherence to the robot's specific skill constraints (`Maps_to`, `pick`, `place`, `speak`).
-* **Rate Limit Handling:** Features a custom retry loop with exponential backoff (`time.sleep`) to gracefully manage API quota limits during rapid testing cycles.
+### 4. Safety Guardrails
+* **The Challenge:** Preventing hazardous interactions in a home environment.
+* **The Solution:** An array-driven filtering system intercepts dangerous keywords (e.g., "knife", "fire") at the absolute beginning of the execution pipeline, completely blocking the physical logic sequence.
+
+## 📊 Technical Stack
+* **Language:** Python 3.x
+* **Core Logic:** Finite State Machines, Dictionary Mapping, Dynamic Dispatch (`getattr`)
+* **Dependencies:** None (Zero external API reliance)
 
 ## 🔧 Installation & Usage
 1. **Requirements:**
    - Python 3.x
-   - Install dependencies via `pip install -r requirements.txt`
+   - Install dependencies via `pip install -r requirements.txt` (for the simulator UI)
 
-2. **Environment Setup:**
-   - Create a `.env` file in the root directory.
-   - Add your Gemini API key: `GEMINI_API_KEY=your_key_here`
-
-3. **Running the Simulation:**
-   - **Interactive GUI Mode:** Run `python run.py --gui` to open the visual simulator and issue plain text commands.
-   - **Automated Testing:** Run `python run.py --test` to evaluate the agent against a suite of complex edge cases (ambiguous, unsafe, out-of-scope, and multi-step commands).
+2. **Running the Simulation:**
+   - **Interactive GUI Mode:** Run `python run.py --gui` to open the visual simulator and issue plain text commands. Try triggering the state machine by typing: *"Get me a drink."*
+   - **Automated Testing:** Run `python run.py --test` to evaluate the agent against a suite of complex edge cases (ambiguous, unsafe, missing objects, and multi-step commands).
 
 ## ✍️ Author
 * **Name:** Raj Fatehveer Singh Brar
